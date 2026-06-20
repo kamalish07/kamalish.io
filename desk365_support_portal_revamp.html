@@ -1,0 +1,560 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#3F51B5;--brand-light:#E8EAF6;--brand-dark:#283593;
+  --bg:#ffffff;--bg2:#F8F9FA;--bg3:#F1F3F4;
+  --text:#1a1a2e;--text2:#5f6368;--text3:#9aa0a6;
+  --border:#E0E0E0;
+  --status-open:#1565C0;--status-open-bg:#E3F2FD;
+  --status-pending:#E65100;--status-pending-bg:#FFF3E0;
+  --status-resolved:#2E7D32;--status-resolved-bg:#E8F5E9;
+  --status-closed:#546E7A;--status-closed-bg:#ECEFF1;
+  --success:#2E7D32;--warn:#E65100;
+}
+body.dark{
+  --bg:#1a1a2e;--bg2:#16213e;--bg3:#0f3460;
+  --text:#e8eaf6;--text2:#b0b8c1;--text3:#6c7a89;
+  --border:#2a2d3e;--brand-light:#1a237e;
+  --status-open-bg:#0d2137;--status-pending-bg:#2a1800;
+  --status-resolved-bg:#0a1f0a;--status-closed-bg:#1a1f23;
+}
+
+.portal{font-family:var(--font-sans,system-ui);background:var(--bg3);min-height:600px;font-size:14px;color:var(--text);transition:background .2s,color .2s}
+
+.topbar{background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;position:sticky;top:0;z-index:100}
+.topbar-brand{font-size:16px;font-weight:500;letter-spacing:.3px}
+.topbar-center{font-size:15px;font-weight:500;opacity:.9}
+.topbar-nav{display:flex;align-items:center;gap:4px}
+.topbar-nav a{color:rgba(255,255,255,.85);font-size:13px;padding:6px 12px;border-radius:6px;cursor:pointer;transition:background .15s;text-decoration:none}
+.topbar-nav a:hover,.topbar-nav a.active{background:rgba(255,255,255,.18);color:#fff}
+.avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:500;font-size:13px;margin-left:8px;cursor:pointer}
+.dark-toggle{background:rgba(255,255,255,.15);border:none;color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px;margin-left:8px}
+
+.tab-bar{display:flex;gap:2px;padding:0 16px;border-bottom:1px solid var(--border);background:var(--bg);overflow-x:auto}
+.tab-btn{background:none;border:none;padding:10px 16px;font-size:13px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s}
+.tab-btn.active{color:var(--brand);border-bottom-color:var(--brand);font-weight:500}
+
+.view{display:none;padding:20px 24px}
+.view.active{display:block}
+
+.announce-bar{background:var(--brand-light);border:1px solid rgba(63,81,181,.2);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--brand);display:flex;align-items:center;gap:8px}
+.announce-bar i{font-size:16px}
+
+.hero-text{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);border-radius:10px;padding:20px 24px;color:#fff;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.hero-text h2{font-size:18px;font-weight:500;margin-bottom:4px}
+.hero-text p{font-size:13px;opacity:.85}
+.hero-search{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:8px 14px;color:#fff;font-size:13px;width:260px;outline:none}
+.hero-search::placeholder{color:rgba(255,255,255,.65)}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title{font-size:15px;font-weight:500;color:var(--text)}
+.section-link{font-size:12px;color:var(--brand);cursor:pointer;text-decoration:none}
+
+.status-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}
+.status-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;transition:box-shadow .15s;border-top:3px solid transparent}
+.status-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.status-card.unresolved{border-top-color:var(--brand)}
+.status-card.open{border-top-color:var(--status-open)}
+.status-card.pending{border-top-color:var(--status-pending)}
+.status-card.resolved{border-top-color:var(--status-resolved)}
+.status-card.closed{border-top-color:var(--status-closed)}
+.sc-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.sc-val{font-size:22px;font-weight:500;color:var(--text)}
+.sc-val.unresolved{color:var(--brand)}
+
+.kb-section{margin-bottom:20px}
+.pinned-strip{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.pinned-article{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px;cursor:pointer;transition:border-color .15s;flex:1;min-width:180px}
+.pinned-article:hover{border-color:var(--brand)}
+.pin-badge{background:var(--brand-light);color:var(--brand);font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;white-space:nowrap}
+.pinned-article i{color:var(--brand);font-size:16px;flex-shrink:0}
+
+.kb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kb-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:box-shadow .15s,border-color .15s}
+.kb-card:hover{border-color:var(--brand);box-shadow:0 2px 10px rgba(63,81,181,.12)}
+.kb-icon{width:36px;height:36px;border-radius:8px;background:var(--brand-light);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.kb-icon i{font-size:18px;color:var(--brand)}
+.kb-card h4{font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px}
+.kb-card p{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px}
+.kb-footer{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border)}
+.kb-count{font-size:11px;color:var(--brand);font-weight:500}
+
+.most-visited{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:16px}
+.article-list{list-style:none}
+.article-list li{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;color:var(--text);transition:color .15s}
+.article-list li:last-child{border-bottom:none}
+.article-list li:hover{color:var(--brand)}
+.article-list li i{font-size:15px;color:var(--text3);flex-shrink:0}
+.article-rank{font-size:11px;color:var(--text3);margin-left:auto}
+
+.tickets-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.toolbar-select{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:7px;font-size:12px;cursor:pointer}
+.toolbar-search{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:7px;font-size:12px;outline:none;min-width:160px}
+.toolbar-btn{background:var(--brand-light);color:var(--brand);border:1px solid rgba(63,81,181,.2);padding:6px 12px;border-radius:7px;font-size:12px;cursor:pointer;white-space:nowrap}
+
+.ticket-table{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.tt-head{display:grid;grid-template-columns:40px 1fr 90px 100px 90px 90px 110px;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.tt-head div,.tt-row div{padding:9px 10px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tt-row{display:grid;grid-template-columns:40px 1fr 90px 100px 90px 90px 110px;gap:0;border-bottom:1px solid var(--border);transition:background .12s;cursor:pointer;font-size:13px}
+.tt-row:last-child{border-bottom:none}
+.tt-row:hover{background:var(--bg2)}
+.ticket-link{color:var(--brand);font-weight:500}
+.status-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500}
+.badge-open{background:var(--status-open-bg);color:var(--status-open)}
+.badge-pending{background:var(--status-pending-bg);color:var(--status-pending)}
+.badge-resolved{background:var(--status-resolved-bg);color:var(--status-resolved)}
+.badge-closed{background:var(--status-closed-bg);color:var(--status-closed)}
+
+.group-header{background:var(--bg2);padding:8px 10px;font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px;cursor:pointer;border-bottom:1px solid var(--border)}
+.group-header i{font-size:14px}
+.group-count{background:var(--border);color:var(--text2);border-radius:10px;padding:1px 7px;font-size:10px}
+
+.settings-grid{display:grid;grid-template-columns:220px 1fr;gap:20px}
+.settings-nav{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;height:fit-content}
+.sn-item{padding:9px 14px;font-size:13px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);transition:background .12s}
+.sn-item:last-child{border-bottom:none}
+.sn-item.active{background:var(--brand-light);color:var(--brand);font-weight:500}
+.sn-item i{font-size:15px}
+.settings-panel{display:flex;flex-direction:column;gap:14px}
+.s-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px}
+.s-card h3{font-size:14px;font-weight:500;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.s-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:13px}
+.s-row label{color:var(--text2)}
+.s-toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+.s-toggle input{opacity:0;width:0;height:0}
+.s-slider{position:absolute;inset:0;background:var(--border);border-radius:11px;cursor:pointer;transition:background .2s}
+.s-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
+input:checked+.s-slider{background:var(--brand)}
+input:checked+.s-slider:before{transform:translateX(18px)}
+.color-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.color-chip{width:28px;height:28px;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:border-color .15s;flex-shrink:0}
+.color-chip.selected{border-color:var(--text)}
+.s-input{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:12px;width:120px}
+.new-badge{background:#E8F5E9;color:#2E7D32;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px}
+body.dark .new-badge{background:#0a1f0a;color:#66bb6a}
+
+.kb-text-block{background:var(--bg2);border-left:3px solid var(--brand);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text2);line-height:1.6}
+
+.signup-modal{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:28px;max-width:380px;margin:0 auto}
+.signup-modal h2{font-size:18px;font-weight:500;color:var(--text);margin-bottom:6px}
+.signup-modal p{font-size:13px;color:var(--text2);margin-bottom:20px}
+.form-group{margin-bottom:12px}
+.form-group label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
+.form-group input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:7px;font-size:13px;outline:none}
+.form-group input:focus{border-color:var(--brand)}
+.btn-primary{background:var(--brand);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:13px;cursor:pointer;width:100%;font-weight:500;transition:background .15s}
+.btn-primary:hover{background:var(--brand-dark)}
+.divider-or{text-align:center;font-size:12px;color:var(--text3);margin:12px 0;display:flex;align-items:center;gap:8px}
+.divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--border)}
+.btn-secondary{background:var(--bg2);color:var(--text);border:1px solid var(--border);padding:8px 18px;border-radius:7px;font-size:13px;cursor:pointer;width:100%;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.access-note{background:#FFF3E0;border-radius:7px;padding:10px 12px;font-size:12px;color:#E65100;margin-top:12px;display:flex;align-items:flex-start;gap:6px}
+body.dark .access-note{background:#2a1800;color:#ffb74d}
+.access-note i{margin-top:1px;flex-shrink:0}
+.contact-filter-note{background:var(--brand-light);border-radius:7px;padding:10px 12px;font-size:12px;color:var(--brand);margin-top:8px;display:flex;align-items:flex-start;gap:6px}
+.contact-filter-note i{margin-top:1px;flex-shrink:0}
+
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;font-size:12px;color:var(--text2)}
+.pag-btns{display:flex;gap:4px}
+.pag-btn{background:var(--bg2);border:1px solid var(--border);color:var(--text);width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px}
+.pag-btn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+.kb-text-above{background:var(--bg2);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.6;border:1px solid var(--border)}
+.custom-widget{background:var(--bg);border:1px solid var(--brand);border-radius:10px;padding:14px;margin-top:16px}
+.custom-widget h4{font-size:13px;font-weight:500;color:var(--brand);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.custom-widget p{font-size:12px;color:var(--text2);line-height:1.5}
+</style>
+
+<h2 class="sr-only">Desk365 Support Portal Revamp — interactive mockup showing homepage, tickets, knowledge base, sign in, and settings screens</h2>
+
+<div class="portal" id="portal">
+  <div class="topbar">
+    <span class="topbar-brand">Lichii</span>
+    <span class="topbar-center">Support Center</span>
+    <div class="topbar-nav">
+      <a class="active" onclick="showTab('home')">Home</a>
+      <a onclick="showTab('tickets')">Tickets</a>
+      <a onclick="showTab('kb')">Knowledge Base</a>
+      <a onclick="showTab('signin')">Sign In</a>
+      <a onclick="showTab('settings')">Settings</a>
+      <div class="avatar">K</div>
+      <button class="dark-toggle" onclick="toggleDark()" id="dark-btn">🌙 Dark</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('home')">Home</button>
+    <button class="tab-btn" onclick="showTab('tickets')">Tickets</button>
+    <button class="tab-btn" onclick="showTab('kb')">Knowledge Base</button>
+    <button class="tab-btn" onclick="showTab('signin')">Sign In / Sign Up</button>
+    <button class="tab-btn" onclick="showTab('settings')">Portal Settings</button>
+  </div>
+
+  <!-- HOME VIEW -->
+  <div class="view active" id="view-home">
+    <div class="announce-bar">
+      <i class="ti ti-speakerphone" aria-hidden="true"></i>
+      We've updated our billing process. <strong style="margin-left:4px;">Read the announcement →</strong>
+    </div>
+
+    <div class="hero-text">
+      <div>
+        <h2>How can we help you today?</h2>
+        <p>Browse articles, check ticket status, or open a new request.</p>
+      </div>
+      <input class="hero-search" placeholder="Search all articles and tickets…" />
+    </div>
+
+    <div class="section-header">
+      <span class="section-title">Ticket Status</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select class="toolbar-select" style="font-size:12px">
+          <option>Tickets Created By Me</option>
+          <option>All Tickets</option>
+          <option>Tickets Shared With Me</option>
+        </select>
+        <a class="section-link" onclick="showTab('tickets')">View all →</a>
+      </div>
+    </div>
+    <div class="status-grid">
+      <div class="status-card unresolved"><div class="sc-label">Unresolved</div><div class="sc-val unresolved">5</div></div>
+      <div class="status-card open"><div class="sc-label">Open</div><div class="sc-val">5</div></div>
+      <div class="status-card pending"><div class="sc-label">Pending</div><div class="sc-val">0</div></div>
+      <div class="status-card resolved"><div class="sc-label">Resolved</div><div class="sc-val">0</div></div>
+      <div class="status-card closed"><div class="sc-label">Closed</div><div class="sc-val">0</div></div>
+    </div>
+
+    <div class="section-header">
+      <span class="section-title">Knowledge Base</span>
+      <a class="section-link" onclick="showTab('kb')">Browse all →</a>
+    </div>
+
+    <div class="kb-text-above">
+      👋 Welcome! Start with our getting-started guides, or use search above to find any article quickly.
+    </div>
+
+    <div class="kb-section">
+      <div style="margin-bottom:10px;font-size:12px;color:var(--text2);font-weight:500;display:flex;align-items:center;gap:6px">
+        <i class="ti ti-pin" aria-hidden="true" style="font-size:14px;color:var(--brand)"></i> Featured articles
+      </div>
+      <div class="pinned-strip">
+        <div class="pinned-article"><i class="ti ti-file-text" aria-hidden="true"></i><span>Getting Started Guide</span><span class="pin-badge">Featured</span></div>
+        <div class="pinned-article"><i class="ti ti-file-text" aria-hidden="true"></i><span>Billing FAQs</span><span class="pin-badge">Featured</span></div>
+        <div class="pinned-article"><i class="ti ti-file-text" aria-hidden="true"></i><span>How to reset your password</span><span class="pin-badge">Featured</span></div>
+      </div>
+      <div class="kb-grid">
+        <div class="kb-card"><div class="kb-icon"><i class="ti ti-help-circle" aria-hidden="true"></i></div><h4>FAQ</h4><p>Category for all FAQ articles</p><div class="kb-footer"><span class="kb-count">4 articles</span><i class="ti ti-arrow-right" style="font-size:14px;color:var(--text3)" aria-hidden="true"></i></div></div>
+        <div class="kb-card"><div class="kb-icon"><i class="ti ti-credit-card" aria-hidden="true"></i></div><h4>Billing</h4><p>Category for all billing articles</p><div class="kb-footer"><span class="kb-count">2 articles</span><i class="ti ti-arrow-right" style="font-size:14px;color:var(--text3)" aria-hidden="true"></i></div></div>
+        <div class="kb-card"><div class="kb-icon"><i class="ti ti-grid-dots" aria-hidden="true"></i></div><h4>General</h4><p>Category for all general articles</p><div class="kb-footer"><span class="kb-count">0 articles</span><i class="ti ti-arrow-right" style="font-size:14px;color:var(--text3)" aria-hidden="true"></i></div></div>
+      </div>
+    </div>
+
+    <div class="most-visited">
+      <div class="section-header" style="margin-bottom:10px"><span class="section-title" style="font-size:14px">Most visited articles</span></div>
+      <ul class="article-list">
+        <li><i class="ti ti-file-text" aria-hidden="true"></i>Test 2<span class="article-rank">243 views</span></li>
+        <li><i class="ti ti-file-text" aria-hidden="true"></i>Test Article - 17710<span class="article-rank">187 views</span></li>
+        <li><i class="ti ti-file-text" aria-hidden="true"></i>Billing FAQs<span class="article-rank">112 views</span></li>
+        <li><i class="ti ti-file-text" aria-hidden="true"></i>Getting Started<span class="article-rank">98 views</span></li>
+      </ul>
+    </div>
+
+    <div class="custom-widget">
+      <h4><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Need urgent help?</h4>
+      <p>Our support team is available Mon–Fri, 9am–6pm IST. For urgent issues, call +91 98765 43210 or use the live chat below.</p>
+    </div>
+  </div>
+
+  <!-- TICKETS VIEW -->
+  <div class="view" id="view-tickets">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="section-title">Tickets</div>
+      <div style="display:flex;gap:8px">
+        <button class="toolbar-btn"><i class="ti ti-upload" aria-hidden="true"></i> Export</button>
+        <select class="toolbar-select">
+          <option>Tickets Created By Me</option>
+          <option>All Tickets</option>
+          <option>Tickets Shared With Me</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="status-grid" style="flex:1;margin:0">
+        <div class="status-card unresolved"><div class="sc-label">Unresolved</div><div class="sc-val unresolved">5</div></div>
+        <div class="status-card open"><div class="sc-label">Open</div><div class="sc-val">5</div></div>
+        <div class="status-card pending"><div class="sc-label">Pending</div><div class="sc-val">0</div></div>
+        <div class="status-card resolved"><div class="sc-label">Resolved</div><div class="sc-val">0</div></div>
+        <div class="status-card closed"><div class="sc-label">Closed</div><div class="sc-val">0</div></div>
+      </div>
+    </div>
+
+    <div class="tickets-toolbar" style="margin-top:14px">
+      <select class="toolbar-select">
+        <option>Sort by: Updated Time</option>
+        <option>Sort by: Created Time</option>
+        <option>Sort by: Priority</option>
+        <option>Sort by: Status</option>
+        <option>Sort by: Due By</option>
+        <option>Sort by: Subject</option>
+        <option>Sort by: Custom Field…</option>
+      </select>
+      <button class="toolbar-btn">↕ Asc</button>
+      <select class="toolbar-select">
+        <option>Filter: Open, Pending</option>
+        <option>All Statuses</option>
+        <option>Open only</option>
+        <option>Resolved</option>
+      </select>
+      <select class="toolbar-select" id="group-sel" onchange="toggleGroup(this.value)">
+        <option value="none">No Grouping</option>
+        <option value="status">Group by Status</option>
+        <option value="priority">Group by Priority</option>
+        <option value="category">Group by Category</option>
+      </select>
+      <input class="toolbar-search" placeholder="Search tickets…" />
+    </div>
+
+    <div class="ticket-table" id="ticket-table">
+      <div class="tt-head">
+        <div></div><div>Subject</div><div>Status</div><div>Updated</div><div>Created</div><div>Priority</div><div>Contact</div>
+      </div>
+      <div id="ticket-body"></div>
+      <div class="pagination">
+        <span>1 – 5 of 5</span>
+        <div class="pag-btns">
+          <button class="pag-btn"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+          <button class="pag-btn active">1</button>
+          <button class="pag-btn"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KB VIEW -->
+  <div class="view" id="view-kb">
+    <div class="kb-text-block">
+      Browse our knowledge base to find guides, FAQs, and how-to articles. Can't find what you need? <strong>Open a ticket</strong> and our team will assist you.
+    </div>
+
+    <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px">
+      <input class="toolbar-search" placeholder="Search Knowledge Base…" style="max-width:400px;padding:9px 14px;border-radius:8px;font-size:13px" />
+    </div>
+
+    <div style="margin-bottom:10px;font-size:12px;color:var(--text2);font-weight:500;display:flex;align-items:center;gap:6px">
+      <i class="ti ti-pin" aria-hidden="true" style="font-size:14px;color:var(--brand)"></i> Pinned / Featured
+    </div>
+    <div class="pinned-strip" style="margin-bottom:18px">
+      <div class="pinned-article"><i class="ti ti-file-text" aria-hidden="true"></i><span>Getting Started Guide</span><span class="pin-badge">Featured</span></div>
+      <div class="pinned-article"><i class="ti ti-file-text" aria-hidden="true"></i><span>Billing FAQs</span><span class="pin-badge">Featured</span></div>
+      <div class="pinned-article"><i class="ti ti-file-text" aria-hidden="true"></i><span>Password Reset Guide</span><span class="pin-badge">Featured</span></div>
+    </div>
+
+    <div class="section-header"><span class="section-title">All Categories</span></div>
+    <div class="kb-grid" style="margin-bottom:16px">
+      <div class="kb-card"><div class="kb-icon"><i class="ti ti-help-circle" aria-hidden="true"></i></div><h4>FAQ</h4>
+        <p>Category for all FAQ articles</p>
+        <ul style="font-size:12px;color:var(--text2);padding-left:14px;margin-bottom:8px;line-height:1.8">
+          <li>Getting Started</li>
+          <li>Account Settings</li>
+          <li>Troubleshooting basics</li>
+        </ul>
+        <div class="kb-footer"><span class="kb-count">4 articles</span><i class="ti ti-arrow-right" style="font-size:14px;color:var(--text3)" aria-hidden="true"></i></div>
+      </div>
+      <div class="kb-card"><div class="kb-icon"><i class="ti ti-credit-card" aria-hidden="true"></i></div><h4>Billing</h4>
+        <p>Category for all billing articles</p>
+        <ul style="font-size:12px;color:var(--text2);padding-left:14px;margin-bottom:8px;line-height:1.8">
+          <li>Invoice download</li>
+          <li>Plan upgrades &amp; downgrades</li>
+        </ul>
+        <div class="kb-footer"><span class="kb-count">2 articles</span><i class="ti ti-arrow-right" style="font-size:14px;color:var(--text3)" aria-hidden="true"></i></div>
+      </div>
+      <div class="kb-card"><div class="kb-icon"><i class="ti ti-grid-dots" aria-hidden="true"></i></div><h4>General</h4>
+        <p>Category for all general articles</p>
+        <div style="font-size:12px;color:var(--text3);font-style:italic;margin-bottom:8px">No articles yet</div>
+        <div class="kb-footer"><span class="kb-count" style="color:var(--text3)">0 articles</span><i class="ti ti-arrow-right" style="font-size:14px;color:var(--text3)" aria-hidden="true"></i></div>
+      </div>
+    </div>
+
+    <div class="kb-text-block" style="border-left-color:#2E7D32">
+      📌 Can't find what you're looking for? Our team updates articles weekly. <strong>Suggest an article →</strong>
+    </div>
+  </div>
+
+  <!-- SIGN IN VIEW -->
+  <div class="view" id="view-signin">
+    <div class="signup-modal">
+      <h2>Welcome back</h2>
+      <p>Sign in to view your tickets and knowledge base.</p>
+
+      <button class="btn-secondary"><i class="ti ti-brand-google" aria-hidden="true" style="font-size:16px"></i> Continue with Google</button>
+      <button class="btn-secondary"><i class="ti ti-mail" aria-hidden="true" style="font-size:16px"></i> Continue with Microsoft</button>
+
+      <div class="divider-or">or sign in with email</div>
+
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" placeholder="you@company.com" />
+      </div>
+      <div class="form-group">
+        <label>Password <span style="float:right;color:var(--brand);cursor:pointer;font-weight:normal">Forgot password?</span></label>
+        <input type="password" placeholder="••••••••" />
+      </div>
+      <button class="btn-primary" style="margin-bottom:10px">Sign in</button>
+
+      <div style="text-align:center;font-size:12px;color:var(--text2)">
+        New here? <span style="color:var(--brand);cursor:pointer">Create an account</span>
+      </div>
+
+      <div class="contact-filter-note">
+        <i class="ti ti-shield-check" aria-hidden="true"></i>
+        <span>This portal is restricted to invited contacts only. Request access from your account manager if you need an invite.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS VIEW -->
+  <div class="view" id="view-settings">
+    <div class="settings-grid">
+      <div class="settings-nav">
+        <div class="sn-item active"><i class="ti ti-palette" aria-hidden="true"></i> Branding &amp; Theme</div>
+        <div class="sn-item"><i class="ti ti-ticket" aria-hidden="true"></i> Ticket Columns</div>
+        <div class="sn-item"><i class="ti ti-books" aria-hidden="true"></i> Knowledge Base</div>
+        <div class="sn-item"><i class="ti ti-users" aria-hidden="true"></i> Portal Access</div>
+        <div class="sn-item"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Custom Widgets</div>
+        <div class="sn-item"><i class="ti ti-status-change" aria-hidden="true"></i> Ticket Statuses</div>
+      </div>
+      <div class="settings-panel">
+        <div class="s-card">
+          <h3>Theme &amp; Appearance</h3>
+          <div class="s-row"><label>Dark mode support</label><label class="s-toggle"><input type="checkbox" onchange="toggleDark()"><span class="s-slider"></span></label></div>
+          <div class="s-row"><label>Primary brand color</label>
+            <div class="color-row">
+              <div class="color-chip selected" style="background:#3F51B5" onclick="setBrand('#3F51B5',this)"></div>
+              <div class="color-chip" style="background:#1976D2" onclick="setBrand('#1976D2',this)"></div>
+              <div class="color-chip" style="background:#00897B" onclick="setBrand('#00897B',this)"></div>
+              <div class="color-chip" style="background:#E53935" onclick="setBrand('#E53935',this)"></div>
+              <div class="color-chip" style="background:#7B1FA2" onclick="setBrand('#7B1FA2',this)"></div>
+              <input type="color" class="s-input" value="#3F51B5" style="width:36px;height:28px;padding:2px;border-radius:6px;cursor:pointer" onchange="setBrand(this.value,null)" />
+            </div>
+          </div>
+          <div class="s-row"><label>Button style</label>
+            <select class="toolbar-select">
+              <option>Filled (default)</option>
+              <option>Outlined</option>
+              <option>Rounded pill</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="s-card">
+          <h3>Ticket List Columns <span class="new-badge">Updated</span></h3>
+          <div class="s-row"><label>Show "Updated Time" column</label><label class="s-toggle"><input type="checkbox" checked><span class="s-slider"></span></label></div>
+          <div class="s-row"><label>Allow sorting by custom fields</label><label class="s-toggle"><input type="checkbox" checked><span class="s-slider"></span></label></div>
+          <div class="s-row"><label>Default sort column</label>
+            <select class="toolbar-select"><option>Updated Time</option><option>Created Time</option><option>Priority</option></select>
+          </div>
+          <div class="s-row"><label>Default ticket view</label>
+            <select class="toolbar-select"><option>Tickets Created By Me</option><option>All Tickets</option><option>Shared With Me</option></select>
+          </div>
+          <div class="s-row"><label>Group tickets by default</label>
+            <select class="toolbar-select"><option>No grouping</option><option>Status</option><option>Priority</option><option>Category</option></select>
+          </div>
+          <div class="s-row"><label>Allow contacts to edit tickets</label><label class="s-toggle"><input type="checkbox"><span class="s-slider"></span></label></div>
+        </div>
+
+        <div class="s-card">
+          <h3>Knowledge Base <span class="new-badge">New</span></h3>
+          <div class="s-row"><label>Show text block above KB listing</label><label class="s-toggle"><input type="checkbox" checked><span class="s-slider"></span></label></div>
+          <div class="s-row"><label>Show text block below KB listing</label><label class="s-toggle"><input type="checkbox"><span class="s-slider"></span></label></div>
+          <div class="s-row"><label>Allow pinning / featuring articles</label><label class="s-toggle"><input type="checkbox" checked><span class="s-slider"></span></label></div>
+          <div class="s-row"><label>Show bullet lists in category descriptions</label><label class="s-toggle"><input type="checkbox" checked><span class="s-slider"></span></label></div>
+        </div>
+
+        <div class="s-card">
+          <h3>Portal Access &amp; Contacts</h3>
+          <div class="s-row"><label>Restrict portal to specific contacts</label><label class="s-toggle"><input type="checkbox"><span class="s-slider"></span></label></div>
+          <div class="s-row"><label>Allow unregistered visitors</label><label class="s-toggle"><input type="checkbox" checked><span class="s-slider"></span></label></div>
+          <div class="s-row"><label>Custom widget on portal</label><label class="s-toggle"><input type="checkbox" checked><span class="s-slider"></span></label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const tickets=[
+  {id:'#12',subject:'ww',status:'Open',updated:'2h ago',created:'2h ago',priority:'Medium',contact:'Kamalish M'},
+  {id:'#10',subject:'T22',status:'Open',updated:'4h ago',created:'5h ago',priority:'High',contact:'Kamalish M'},
+  {id:'#9',subject:'T11',status:'Open',updated:'4h ago',created:'5h ago',priority:'Low',contact:'Kamalish M'},
+  {id:'#8',subject:'ww',status:'Open',updated:'23h ago',created:'1d ago',priority:'Medium',contact:'Kamalish M'},
+  {id:'#7',subject:'ww',status:'Pending',updated:'2d ago',created:'2d ago',priority:'Low',contact:'Kamalish M'},
+];
+const statusClass={Open:'badge-open',Pending:'badge-pending',Resolved:'badge-resolved',Closed:'badge-closed'};
+
+function renderTickets(grouped){
+  const body=document.getElementById('ticket-body');
+  if(!grouped){
+    body.innerHTML=tickets.map(t=>`
+      <div class="tt-row">
+        <div><i class="ti ti-phone" aria-hidden="true" style="font-size:15px;color:var(--text3)"></i></div>
+        <div><span class="ticket-link">${t.id}: ${t.subject}</span></div>
+        <div><span class="status-badge ${statusClass[t.status]}">${t.status}</span></div>
+        <div>${t.updated}</div>
+        <div>${t.created}</div>
+        <div>${t.priority}</div>
+        <div>${t.contact}</div>
+      </div>`).join('');
+  } else {
+    const groups={};
+    tickets.forEach(t=>{
+      const key=grouped==='status'?t.status:grouped==='priority'?t.priority:'General';
+      if(!groups[key])groups[key]=[];
+      groups[key].push(t);
+    });
+    body.innerHTML=Object.entries(groups).map(([g,ts])=>`
+      <div class="group-header"><i class="ti ti-chevron-down" aria-hidden="true"></i>${g} <span class="group-count">${ts.length}</span></div>
+      ${ts.map(t=>`<div class="tt-row">
+        <div><i class="ti ti-phone" aria-hidden="true" style="font-size:15px;color:var(--text3)"></i></div>
+        <div><span class="ticket-link">${t.id}: ${t.subject}</span></div>
+        <div><span class="status-badge ${statusClass[t.status]}">${t.status}</span></div>
+        <div>${t.updated}</div>
+        <div>${t.created}</div>
+        <div>${t.priority}</div>
+        <div>${t.contact}</div>
+      </div>`).join('')}`).join('');
+  }
+}
+renderTickets(false);
+
+function toggleGroup(v){renderTickets(v==='none'?false:v);}
+
+function showTab(t){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+t).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.toLowerCase().includes(t.substring(0,4))||b.onclick&&b.onclick.toString().includes(t))b.classList.add('active');});
+  const tabs=['home','tickets','kb','signin','settings'];
+  const idx=tabs.indexOf(t);
+  if(idx>=0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+}
+
+let dark=false;
+function toggleDark(){
+  dark=!dark;
+  document.getElementById('portal').classList.toggle('dark',dark);
+  document.body.classList.toggle('dark',dark);
+  document.getElementById('dark-btn').textContent=dark?'☀️ Light':'🌙 Dark';
+}
+
+function setBrand(c,el){
+  document.querySelectorAll('.color-chip').forEach(ch=>ch.classList.remove('selected'));
+  if(el)el.classList.add('selected');
+  document.getElementById('portal').style.setProperty('--brand',c);
+  const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16);
+  document.getElementById('portal').style.setProperty('--brand-dark',`rgb(${Math.max(0,r-30)},${Math.max(0,g-30)},${Math.max(0,b-30)})`);
+  document.getElementById('portal').style.setProperty('--brand-light',`rgba(${r},${g},${b},0.1)`);
+  const topbars=document.querySelectorAll('.topbar');
+  topbars.forEach(tb=>tb.style.background=c);
+}
+</script>
